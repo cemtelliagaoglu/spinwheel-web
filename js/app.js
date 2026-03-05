@@ -2,7 +2,7 @@ import { createWheel } from './wheel.js';
 import { createAudio } from './audio.js';
 import { renderItemList, showResultModal, hideResultModal, renderHistory, renderSavedConfigs, announceResult } from './ui.js';
 import { saveConfig, loadConfigs, deleteConfig, addHistoryEntry, loadHistory, clearHistory } from './storage.js';
-import { getToken, fetchPlaces, getListUrl } from './clickup.js';
+import { isConfigured, fetchPlaces, getListUrl } from './clickup.js';
 
 // State
 let mode = 'clickup'; // 'clickup' or 'custom'
@@ -107,14 +107,14 @@ copyClickupBtn.addEventListener('click', () => {
 });
 
 // --- ClickUp mode ---
-if (getToken()) {
+if (isConfigured()) {
   syncFromClickUp();
 }
 
 syncBtn.addEventListener('click', () => syncFromClickUp({ force: true }));
 
 async function syncFromClickUp({ force = false } = {}) {
-  if (!getToken()) {
+  if (!isConfigured()) {
     setClickupStatus('Set your API token first', 'error');
     return;
   }

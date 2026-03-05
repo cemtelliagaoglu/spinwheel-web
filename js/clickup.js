@@ -1,23 +1,30 @@
-let LIST_ID = '';
 const API_BASE = 'https://api.clickup.com/api/v2';
 const CACHE_KEY = 'wswe_v1_clickup_cache';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-let configToken = '';
+// Local dev config (from gitignored config.js)
+let localToken = '';
+let localListId = '';
 let configListUrl = '';
 
-// Try loading from config.js (gitignored, for local dev)
 try {
   const { CONFIG } = await import('../config.js');
-  configToken = CONFIG.CLICKUP_API_TOKEN || '';
-  LIST_ID = CONFIG.CLICKUP_LIST_ID || '';
+  localToken = CONFIG.CLICKUP_API_TOKEN || '';
+  localListId = CONFIG.CLICKUP_LIST_ID || '';
   configListUrl = CONFIG.CLICKUP_LIST_URL || '';
 } catch {
-  // config.js not present — that's fine, fall back to localStorage
+  // config.js not present — will use Netlify function instead
 }
 
+const isLocal = !!localToken;
+
 export function getToken() {
-  return configToken;
+  return localToken;
+}
+
+export function isConfigured() {
+  // Either local config or assume Netlify function is available
+  return isLocal || window.location.hostname.includes('netlify.app');
 }
 
 export function getListUrl() {
@@ -45,28 +52,38 @@ function setCache(places) {
 }
 
 export async function fetchPlaces({ force = false } = {}) {
-  const token = getToken();
-  if (!token) return null;
-
   // Return cached data if fresh enough
   if (!force) {
     const cache = getCache();
     if (cache) return cache.places;
   }
 
-  const res = await fetch(`${API_BASE}/list/${LIST_ID}/task?archived=false&order_by=created&reverse=true`, {
-    headers: { Authorization: token }
-  });
+  let places;
 
-  if (!res.ok) {
-    throw new Error(`ClickUp API error: ${res.status}`);
+  if (isLocal) {
+    // Local dev: call ClickUp API directly with config.js token
+    const res = await fetch(
+      `${API_BASE}/list/${localListId}/task?archived=false&order_by=created&reverse=true`,
+      { headers: { Authorization: localToken } }
+    );
+    if (!res.ok) throw new Error(`ClickUp API error: ${res.status}`);
+    const data = await res.json();
+    places = data.tasks
+      .filter(t => t.status?.type !== 'closed')
+      .map(t => t.name.trim())
+      .filter(Boolean);
+  } else {
+    // Production: call Netlify function (token stays server-side)
+    const res = await fetch(`/api/places${force ? '?force=true' : ''}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `API error: ${res.status}`);
+    }
+    const data = await res.json();
+    places = data.places;
+    // Pick up list URL from server if not set locally
+    if (data.listUrl && !configListUrl) configListUrl = data.listUrl;
   }
-
-  const data = await res.json();
-  const places = data.tasks
-    .filter(t => t.status?.type !== 'closed')
-    .map(t => t.name.trim())
-    .filter(Boolean);
 
   setCache(places);
   return places;
