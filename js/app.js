@@ -2,7 +2,7 @@ import { createWheel } from './wheel.js';
 import { createAudio } from './audio.js';
 import { renderItemList, showResultModal, hideResultModal, renderHistory, renderSavedConfigs, announceResult } from './ui.js';
 import { saveConfig, loadConfigs, deleteConfig, addHistoryEntry, loadHistory, clearHistory } from './storage.js';
-import { getToken, saveToken, fetchPlaces, hasConfigToken, getListUrl } from './clickup.js';
+import { getToken, fetchPlaces, getListUrl } from './clickup.js';
 
 // State
 let mode = 'clickup'; // 'clickup' or 'custom'
@@ -34,8 +34,6 @@ const panelCustom = document.getElementById('panel-custom');
 // ClickUp panel
 const syncBtn = document.getElementById('sync-btn');
 const clickupItemList = document.getElementById('item-list-clickup');
-const clickupTokenInput = document.getElementById('clickup-token');
-const saveTokenBtn = document.getElementById('save-token-btn');
 const clickupStatus = document.getElementById('clickup-status');
 
 // Custom panel
@@ -109,33 +107,9 @@ copyClickupBtn.addEventListener('click', () => {
 });
 
 // --- ClickUp mode ---
-if (hasConfigToken()) {
-  document.getElementById('clickup-details').style.display = 'none';
-}
-
 if (getToken()) {
-  if (!hasConfigToken()) {
-    clickupTokenInput.value = '••••••••';
-  }
   syncFromClickUp();
 }
-
-saveTokenBtn.addEventListener('click', () => {
-  const token = clickupTokenInput.value.trim();
-  if (!token || token === '••••••••') return;
-  saveToken(token);
-  clickupTokenInput.value = '••••••••';
-  setClickupStatus('Token saved', 'success');
-  syncFromClickUp();
-});
-
-clickupTokenInput.addEventListener('focus', () => {
-  if (clickupTokenInput.value === '••••••••') clickupTokenInput.value = '';
-});
-
-clickupTokenInput.addEventListener('blur', () => {
-  if (!clickupTokenInput.value && getToken()) clickupTokenInput.value = '••••••••';
-});
 
 syncBtn.addEventListener('click', () => syncFromClickUp({ force: true }));
 

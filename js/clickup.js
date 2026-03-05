@@ -1,6 +1,5 @@
 let LIST_ID = '';
 const API_BASE = 'https://api.clickup.com/api/v2';
-const TOKEN_KEY = 'wswe_v1_clickup_token';
 const CACHE_KEY = 'wswe_v1_clickup_cache';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
@@ -18,40 +17,11 @@ try {
 }
 
 export function getToken() {
-  if (configToken) return configToken;
-  try {
-    return localStorage.getItem(TOKEN_KEY) || '';
-  } catch {
-    return '';
-  }
-}
-
-export function hasConfigToken() {
-  return !!configToken;
-}
-
-export function getListId() {
-  return LIST_ID;
+  return configToken;
 }
 
 export function getListUrl() {
   return configListUrl;
-}
-
-export function saveToken(token) {
-  try {
-    localStorage.setItem(TOKEN_KEY, token.trim());
-  } catch {
-    // Storage unavailable
-  }
-}
-
-export function clearToken() {
-  try {
-    localStorage.removeItem(TOKEN_KEY);
-  } catch {
-    // Storage unavailable
-  }
 }
 
 function getCache() {
