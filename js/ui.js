@@ -5,14 +5,23 @@ const COLORS = [
 
 export function renderItemList(container, items, onRemove) {
   container.innerHTML = '';
+  if (items.length === 0) {
+    container.innerHTML = '<li class="empty-msg">No places added yet</li>';
+    return;
+  }
   items.forEach((item, i) => {
     const li = document.createElement('li');
+    const removeBtn = onRemove
+      ? `<button type="button" aria-label="Remove ${escapeHtml(item)}">&times;</button>`
+      : '';
     li.innerHTML = `
       <span class="color-dot" style="background:${COLORS[i % COLORS.length]}"></span>
       <span class="item-name">${escapeHtml(item)}</span>
-      <button type="button" aria-label="Remove ${escapeHtml(item)}">&times;</button>
+      ${removeBtn}
     `;
-    li.querySelector('button').addEventListener('click', () => onRemove(i));
+    if (onRemove) {
+      li.querySelector('button').addEventListener('click', () => onRemove(i));
+    }
     container.appendChild(li);
   });
 }

@@ -25,12 +25,45 @@
     </section>
 
     <section class="controls-section" aria-label="Controls">
-      <div class="add-form">
-        <input type="text" id="item-input" placeholder="Add a place..." aria-label="Food place name" maxlength="40">
-        <button id="add-btn" type="button">+ Add</button>
+      <div class="mode-tabs" role="tablist" aria-label="Source mode">
+        <button id="tab-clickup" class="mode-tab active" role="tab" aria-selected="true" type="button">ClickUp</button>
+        <button id="tab-custom" class="mode-tab" role="tab" aria-selected="false" type="button">Custom</button>
       </div>
 
-      <ul id="item-list" class="item-list" aria-label="Food places"></ul>
+      <!-- ClickUp mode -->
+      <div id="panel-clickup" class="mode-panel" role="tabpanel">
+        <div class="clickup-info">
+          <p class="clickup-label">Synced from <a id="clickup-list-link" href="#" target="_blank" rel="noopener" class="clickup-link">our ClickUp list</a> — add places there!</p>
+          <button id="sync-btn" class="sync-btn" type="button">Sync from ClickUp</button>
+        </div>
+        <ul id="item-list-clickup" class="item-list" aria-label="ClickUp food places"></ul>
+        <div class="clickup-settings">
+          <details id="clickup-details">
+            <summary>ClickUp Settings</summary>
+            <div class="clickup-form">
+              <label for="clickup-token">API Token</label>
+              <div class="token-row">
+                <input type="password" id="clickup-token" placeholder="pk_..." aria-label="ClickUp API token">
+                <button id="save-token-btn" type="button">Save</button>
+              </div>
+              <p class="clickup-hint">Get your token from ClickUp → Settings → Apps → API Token</p>
+            </div>
+          </details>
+        </div>
+        <p id="clickup-status" class="clickup-status"></p>
+      </div>
+
+      <!-- Custom mode -->
+      <div id="panel-custom" class="mode-panel" role="tabpanel" hidden>
+        <div id="template-hint" class="template-hint" hidden>
+          <button id="copy-clickup-btn" class="template-btn" type="button">Copy all from ClickUp</button>
+        </div>
+        <div class="add-form">
+          <input type="text" id="item-input" placeholder="Add a place..." aria-label="Food place name" maxlength="40">
+          <button id="add-btn" type="button">+ Add</button>
+        </div>
+        <ul id="item-list-custom" class="item-list" aria-label="Custom food places"></ul>
+      </div>
 
       <button id="spin-btn" class="spin-btn" type="button">SPIN!</button>
 
