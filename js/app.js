@@ -35,6 +35,7 @@ const panelCustom = document.getElementById('panel-custom');
 const syncBtn = document.getElementById('sync-btn');
 const clickupItemList = document.getElementById('item-list-clickup');
 const clickupStatus = document.getElementById('clickup-status');
+const listLink = document.getElementById('clickup-list-link');
 
 // Custom panel
 const itemInput = document.getElementById('item-input');
@@ -131,6 +132,11 @@ async function syncFromClickUp({ force = false } = {}) {
       }
       updateUI();
       setClickupStatus(`Synced ${places.length} places`, 'success');
+      const url = getListUrl();
+      if (url) {
+        listLink.href = url;
+        listLink.style.pointerEvents = '';
+      }
     } else if (places && places.length === 0) {
       setClickupStatus('No open tasks found in list', 'error');
     }
@@ -229,12 +235,3 @@ function refreshSavedConfigs() {
 wheel.setItems(activeItems());
 updateUI();
 
-// Set ClickUp list link dynamically
-const listLink = document.getElementById('clickup-list-link');
-const listUrl = getListUrl();
-if (listUrl) {
-  listLink.href = listUrl;
-} else {
-  listLink.removeAttribute('href');
-  listLink.style.pointerEvents = 'none';
-}
