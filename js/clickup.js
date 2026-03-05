@@ -23,8 +23,8 @@ export function getToken() {
 }
 
 export function isConfigured() {
-  // Either local config or assume Netlify function is available
-  return isLocal || window.location.hostname.includes('netlify.app');
+  // Local config available, or not on localhost (assume Netlify function exists)
+  return isLocal || window.location.protocol === 'https:';
 }
 
 export function getListUrl() {
