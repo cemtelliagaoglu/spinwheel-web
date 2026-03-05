@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What Should We Eat?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <h1>What Should We Eat?</h1>
+    <p>Spin the wheel. End the debate.</p>
+  </header>
+
+  <main class="main">
+    <section class="wheel-section" aria-label="Spin wheel">
+      <div class="wheel-container">
+        <div class="wheel-pointer" aria-hidden="true"></div>
+        <canvas id="wheel-canvas"></canvas>
+      </div>
+    </section>
+
+    <section class="controls-section" aria-label="Controls">
+      <div class="add-form">
+        <input type="text" id="item-input" placeholder="Add a place..." aria-label="Food place name" maxlength="40">
+        <button id="add-btn" type="button">+ Add</button>
+      </div>
+
+      <ul id="item-list" class="item-list" aria-label="Food places"></ul>
+
+      <button id="spin-btn" class="spin-btn" type="button">SPIN!</button>
+
+      <label class="sound-toggle">
+        <input type="checkbox" id="sound-toggle" checked>
+        <span>Sound effects</span>
+      </label>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="saved-panel">
+      <h2>Saved Wheels</h2>
+      <div id="saved-configs" class="saved-configs"></div>
+      <button id="save-btn" class="save-btn" type="button">Save Current...</button>
+    </div>
+    <div class="history-panel">
+      <h2>Spin History</h2>
+      <ul id="history-list" class="history-list"></ul>
+      <button id="clear-history-btn" class="clear-history-btn" type="button">Clear History</button>
+    </div>
+  </footer>
+
+  <div id="result-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal-content">
+      <p class="modal-label">You're eating at...</p>
+      <h2 id="modal-title" class="modal-result"></h2>
+      <button id="modal-close" class="modal-close" type="button">Let's go!</button>
+    </div>
+  </div>
+
+  <div aria-live="assertive" class="visually-hidden" id="announcer"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
