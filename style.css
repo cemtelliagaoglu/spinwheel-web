@@ -313,6 +313,25 @@ body {
   text-decoration: underline;
 }
 
+/* Tournament button */
+.tournament-btn {
+  padding: 0.7rem;
+  border: 2px solid var(--input-bg);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.tournament-btn:hover {
+  border-color: var(--accent);
+  background: rgba(244, 162, 97, 0.08);
+}
+
 /* Sound toggle */
 .sound-toggle {
   display: flex;

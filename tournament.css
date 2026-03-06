@@ -1,0 +1,555 @@
+/* Tournament */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Home / Join ---- */
+.t-home {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.t-hero {
+  text-align: center;
+}
+
+.t-hero h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.t-hero p {
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.t-home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.t-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.t-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.t-card input {
+  padding: 0.65rem 0.85rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.t-card input:focus {
+  border-color: var(--accent);
+}
+
+.t-card input::placeholder {
+  color: var(--text-muted);
+}
+
+.t-code-input {
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 1.2rem !important;
+  letter-spacing: 0.15em;
+  text-align: center;
+}
+
+.t-item-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.t-item-count.t-warning {
+  color: var(--danger);
+}
+
+.t-divider {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  position: relative;
+}
+
+.t-divider span {
+  background: var(--bg);
+  padding: 0 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+.t-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--input-bg);
+}
+
+/* Buttons */
+.t-btn {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.t-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.t-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.t-btn-primary {
+  background: linear-gradient(135deg, var(--accent), #E63946);
+  color: white;
+}
+
+.t-btn-secondary {
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.t-btn-small {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--input-bg);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.t-btn-small:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.t-btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+}
+
+.t-back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  text-align: center;
+  transition: color var(--transition);
+}
+
+.t-back-link:hover {
+  color: var(--accent);
+}
+
+.t-error {
+  text-align: center;
+  color: var(--danger);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ---- Lobby ---- */
+.t-lobby {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.t-room-code-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+}
+
+.t-room-code-display .t-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.t-room-code-display .t-code {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+}
+
+.t-player-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.t-player-list li {
+  padding: 0.5rem 0.75rem;
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.t-host-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(244, 162, 97, 0.15);
+  padding: 0.15rem 0.45rem;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.t-items-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.t-item-chip {
+  padding: 0.3rem 0.6rem;
+  background: var(--input-bg);
+  border-radius: 100px;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.t-waiting {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  animation: t-pulse 2s ease-in-out infinite;
+}
+
+@keyframes t-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.t-hint {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* ---- Voting ---- */
+.t-voting {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+  width: 100%;
+}
+
+.t-round-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.t-round-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.t-room-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--input-bg);
+  padding: 0.25rem 0.6rem;
+  border-radius: 100px;
+  letter-spacing: 0.08em;
+}
+
+.t-prompt {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+/* Matchup cards */
+.t-matchup {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.t-choice-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  background: var(--surface);
+  border: 3px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease, opacity 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+  color: var(--text);
+}
+
+.t-choice-card:hover:not(:disabled) {
+  transform: scale(1.03);
+  border-color: var(--accent);
+}
+
+.t-choice-card:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.t-choice-card.t-voted {
+  border-color: var(--accent);
+  box-shadow: 0 0 24px rgba(244, 162, 97, 0.3);
+}
+
+.t-choice-card.t-not-picked {
+  opacity: 0.45;
+}
+
+.t-choice-card:disabled {
+  cursor: default;
+}
+
+.t-choice-emoji {
+  font-size: 3rem;
+}
+
+.t-choice-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+  word-break: break-word;
+}
+
+.t-vote-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  z-index: 1;
+}
+
+.t-vote-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+  transition: width 400ms ease;
+}
+
+.t-vs {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.t-vote-status {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Swipe hint */
+.t-swipe-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ---- Mini bracket ---- */
+.t-mini-bracket {
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.75rem 0;
+  margin-top: 0.5rem;
+}
+
+.t-mini-round {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 120px;
+}
+
+.t-mini-round-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2rem;
+}
+
+.t-mini-matchup {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.5rem;
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+}
+
+.t-mini-matchup.t-current {
+  border-color: var(--accent);
+  background: rgba(244, 162, 97, 0.1);
+}
+
+.t-mini-matchup.t-resolved {
+  opacity: 0.6;
+}
+
+.t-mini-vs {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.65rem;
+}
+
+.t-mini-winner {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ---- Finished ---- */
+.t-finished {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.t-winner-display {
+  text-align: center;
+  padding: 2rem;
+  animation: t-winner-in 600ms ease;
+}
+
+@keyframes t-winner-in {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.t-winner-emoji {
+  font-size: 5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.t-winner-name {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--accent);
+  word-break: break-word;
+}
+
+.t-winner-label {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.t-finished-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 520px) {
+  .t-matchup {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto 1fr;
+  }
+
+  .t-choice-card {
+    padding: 2rem 1rem;
+  }
+
+  .t-choice-emoji {
+    font-size: 2.5rem;
+  }
+
+  .t-room-code-display .t-code {
+    font-size: 1.6rem;
+  }
+
+  .t-winner-emoji {
+    font-size: 4rem;
+  }
+
+  .t-winner-name {
+    font-size: 1.6rem;
+  }
+}

@@ -24,6 +24,7 @@ const clearHistoryBtn = document.getElementById('clear-history-btn');
 const resultModal = document.getElementById('result-modal');
 const modalClose = document.getElementById('modal-close');
 const announcer = document.getElementById('announcer');
+const tournamentBtn = document.getElementById('tournament-btn');
 
 // Mode tabs
 const tabClickup = document.getElementById('tab-clickup');
@@ -230,6 +231,12 @@ function updateUI() {
 function refreshSavedConfigs() {
   renderSavedConfigs(savedConfigsEl, loadConfigs(), onLoadConfig, onDeleteConfig);
 }
+
+// --- Tournament ---
+tournamentBtn.addEventListener('click', () => {
+  sessionStorage.setItem('tournament_items', JSON.stringify(activeItems()));
+  window.location.href = 'tournament.html';
+});
 
 // --- Init ---
 wheel.setItems(activeItems());
