@@ -279,6 +279,123 @@
   text-align: center;
 }
 
+/* ---- Bracket editor ---- */
+.t-bracket-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.t-edit-matchup {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+}
+
+.t-edit-item {
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  background: var(--bg);
+  border: 2px solid transparent;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.t-edit-item.t-edit-tappable {
+  cursor: pointer;
+}
+
+.t-edit-item.t-edit-tappable:hover {
+  border-color: var(--accent);
+}
+
+.t-edit-item.t-edit-selected {
+  border-color: var(--accent);
+  background: rgba(244, 162, 97, 0.15);
+}
+
+.t-edit-vs {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.t-edit-bye-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.t-edit-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  margin-left: auto;
+  line-height: 1;
+  transition: color 150ms ease;
+  flex-shrink: 0;
+}
+
+.t-edit-remove:hover {
+  color: var(--danger);
+}
+
+.t-edit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.t-edit-add {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.t-edit-add input {
+  flex: 1;
+  padding: 0.45rem 0.65rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.t-edit-add input:focus {
+  border-color: var(--accent);
+}
+
+.t-edit-add input::placeholder {
+  color: var(--text-muted);
+}
+
+.t-edit-buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.t-swap-hint {
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
 /* ---- Voting ---- */
 .t-voting {
   max-width: 640px;

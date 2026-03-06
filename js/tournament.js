@@ -23,6 +23,7 @@ const state = {
   view: 'home',
   channel: null,
   emojiMap: {},
+  swapSelection: null, // { round, matchup, slot } for bracket editing
 };
 
 // --- Player ID ---
@@ -54,15 +55,14 @@ function assignEmojis(items) {
 }
 
 // --- Bracket generation ---
-function generateBracket(items) {
-  if (items.length < 2) return [];
+// Build bracket from an ordered list (no shuffle). Core reusable logic.
+function buildBracket(orderedItems) {
+  if (orderedItems.length < 2) return [];
 
-  const shuffled = [...items].sort(() => Math.random() - 0.5);
-  const exp = Math.ceil(Math.log2(shuffled.length));
+  const exp = Math.ceil(Math.log2(orderedItems.length));
   const size = Math.pow(2, exp);
 
-  // Pad with nulls
-  const slots = [...shuffled];
+  const slots = [...orderedItems];
   while (slots.length < size) slots.push(null);
 
   // Fold pairing: [0 vs size-1], [1 vs size-2], ... avoids null-vs-null
@@ -71,10 +71,7 @@ function generateBracket(items) {
     const a = slots[i];
     const b = slots[size - 1 - i];
     const isBye = !a || !b;
-    firstRound.push({
-      a, b,
-      winner: isBye ? (a || b) : null,
-    });
+    firstRound.push({ a, b, winner: isBye ? (a || b) : null });
   }
 
   const rounds = [firstRound];
@@ -86,7 +83,11 @@ function generateBracket(items) {
     );
   }
 
-  // Propagate bye winners
+  propagateByes(rounds);
+  return rounds;
+}
+
+function propagateByes(rounds) {
   for (let r = 0; r < rounds.length - 1; r++) {
     for (let m = 0; m < rounds[r].length; m++) {
       if (rounds[r][m].winner) {
@@ -96,8 +97,22 @@ function generateBracket(items) {
       }
     }
   }
+}
 
-  return rounds;
+// Build bracket with random shuffle
+function generateBracket(items) {
+  return buildBracket([...items].sort(() => Math.random() - 0.5));
+}
+
+// Extract ordered items from a bracket's first round
+function extractItemsFromBracket(bracket) {
+  if (!bracket?.[0]) return [];
+  const items = [];
+  for (const mu of bracket[0]) {
+    if (mu.a) items.push(mu.a);
+    if (mu.b) items.push(mu.b);
+  }
+  return items;
 }
 
 // --- Find next votable matchup ---
@@ -121,6 +136,10 @@ function getRoundName(roundIdx, totalRounds) {
 }
 
 // --- Supabase actions ---
+function sbError(error, fallback) {
+  return error?.message || error?.details || error?.hint || fallback;
+}
+
 async function createTournament(items, playerName) {
   const roomCode = generateRoomCode();
   const bracket = generateBracket(items);
@@ -140,7 +159,7 @@ async function createTournament(items, playerName) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throw new Error(sbError(error, 'Failed to create tournament'));
 
   state.tournament = data;
   state.tournamentId = data.id;
@@ -166,7 +185,8 @@ async function joinTournament(roomCode, playerName) {
     .eq('room_code', roomCode.toUpperCase())
     .single();
 
-  if (error || !data) throw new Error('Room not found');
+  if (error) throw new Error(sbError(error, 'Room not found'));
+  if (!data) throw new Error('Room not found');
   if (data.status === 'finished') throw new Error('Tournament already finished');
 
   state.tournament = data;
@@ -189,12 +209,13 @@ async function joinTournament(roomCode, playerName) {
 }
 
 async function joinAsPlayer(tournamentId, name) {
-  await supabase
+  const { error } = await supabase
     .from('tournament_players')
     .upsert(
       { tournament_id: tournamentId, player_id: state.playerId, name },
       { onConflict: 'tournament_id,player_id' }
     );
+  if (error) console.error('Failed to register player:', error);
 }
 
 async function loadPlayers(tournamentId) {
@@ -250,6 +271,84 @@ async function startTournament() {
     .from('tournaments')
     .update({ status: 'voting' })
     .eq('id', state.tournamentId);
+}
+
+// --- Bracket editing (lobby only) ---
+async function updateBracket(items, bracket) {
+  const first = findNextMatchup(bracket, 0, 0);
+  state.emojiMap = assignEmojis(items);
+  await supabase.from('tournaments').update({
+    items,
+    bracket,
+    current_round: first ? first.round : 0,
+    current_matchup: first ? first.matchup : 0,
+  }).eq('id', state.tournamentId);
+}
+
+async function addTournamentItem(name) {
+  if (!state.isHost || !state.tournament) return;
+  const items = [...state.tournament.items, name];
+  await updateBracket(items, buildBracket(items));
+}
+
+async function removeTournamentItem(name) {
+  if (!state.isHost || !state.tournament) return;
+  const items = state.tournament.items.filter(i => i !== name);
+  if (items.length < 2) return;
+  await updateBracket(items, buildBracket(items));
+}
+
+async function reshuffleBracket() {
+  if (!state.isHost || !state.tournament) return;
+  const items = state.tournament.items;
+  await updateBracket(items, generateBracket(items));
+}
+
+function handleSwapTap(round, matchup, slot) {
+  const bracket = state.tournament.bracket;
+  const item = bracket?.[round]?.[matchup]?.[slot];
+  if (!item) return; // can't swap nulls/byes
+
+  if (!state.swapSelection) {
+    state.swapSelection = { round, matchup, slot };
+    render();
+    return;
+  }
+
+  const sel = state.swapSelection;
+  if (sel.round === round && sel.matchup === matchup && sel.slot === slot) {
+    state.swapSelection = null;
+    render();
+    return;
+  }
+
+  // Perform swap
+  const newBracket = JSON.parse(JSON.stringify(bracket));
+  const itemA = newBracket[sel.round][sel.matchup][sel.slot];
+  const itemB = newBracket[round][matchup][slot];
+  newBracket[sel.round][sel.matchup][sel.slot] = itemB;
+  newBracket[round][matchup][slot] = itemA;
+
+  // Recalculate byes in first round
+  for (const mu of newBracket[0]) {
+    if (!mu.a || !mu.b) {
+      mu.winner = mu.a || mu.b || null;
+    } else {
+      mu.winner = null;
+    }
+  }
+
+  // Clear and re-propagate later rounds
+  for (let r = 1; r < newBracket.length; r++) {
+    for (const mu of newBracket[r]) {
+      mu.a = null; mu.b = null; mu.winner = null;
+    }
+  }
+  propagateByes(newBracket);
+
+  state.swapSelection = null;
+  const items = extractItemsFromBracket(newBracket);
+  updateBracket(items, newBracket);
 }
 
 async function advanceMatchup() {
@@ -408,10 +507,15 @@ function renderHome(app) {
   listen('create-btn', 'click', async () => {
     const name = val('host-name');
     if (!name) return showError('Enter your name');
+    const btn = document.getElementById('create-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
     try {
       await createTournament(items, name);
     } catch (e) {
       showError(e.message);
+      btn.disabled = false;
+      btn.textContent = 'Create Room';
     }
   });
 
@@ -420,10 +524,15 @@ function renderHome(app) {
     const code = val('join-code');
     if (!name) return showError('Enter your name');
     if (!code || code.length < 4) return showError('Enter a 4-letter room code');
+    const btn = document.getElementById('join-btn');
+    btn.disabled = true;
+    btn.textContent = 'Joining...';
     try {
       await joinTournament(code, name);
     } catch (e) {
       showError(e.message);
+      btn.disabled = false;
+      btn.textContent = 'Join Room';
     }
   });
 
@@ -436,6 +545,50 @@ function renderHome(app) {
 }
 
 function renderLobby(app) {
+  const bracket = state.tournament.bracket;
+  const isHost = state.isHost;
+  const sel = state.swapSelection;
+
+  // Build matchup rows from first round (skip byes for display, but show bye items)
+  let matchupsHtml = '';
+  if (bracket?.[0]) {
+    for (let m = 0; m < bracket[0].length; m++) {
+      const mu = bracket[0][m];
+      const isBye = !mu.a || !mu.b;
+
+      if (isBye) {
+        const byeItem = mu.a || mu.b;
+        if (!byeItem) continue;
+        matchupsHtml += `
+          <div class="t-edit-matchup t-edit-bye">
+            <span class="t-edit-item ${isHost ? 't-edit-tappable' : ''} ${sel && sel.round === 0 && sel.matchup === m && sel.slot === 'a' ? 't-edit-selected' : ''}"
+                  data-r="0" data-m="${m}" data-s="a">
+              ${state.emojiMap[byeItem] || '\u{1F37D}'} ${esc(byeItem)}
+            </span>
+            <span class="t-edit-bye-label">bye</span>
+            ${isHost ? `<button class="t-edit-remove" data-name="${esc(byeItem)}">\u00D7</button>` : ''}
+          </div>`;
+      } else {
+        matchupsHtml += `
+          <div class="t-edit-matchup">
+            <span class="t-edit-item ${isHost ? 't-edit-tappable' : ''} ${sel && sel.round === 0 && sel.matchup === m && sel.slot === 'a' ? 't-edit-selected' : ''}"
+                  data-r="0" data-m="${m}" data-s="a">
+              ${state.emojiMap[mu.a] || '\u{1F37D}'} ${esc(mu.a)}
+            </span>
+            <span class="t-edit-vs">vs</span>
+            <span class="t-edit-item ${isHost ? 't-edit-tappable' : ''} ${sel && sel.round === 0 && sel.matchup === m && sel.slot === 'b' ? 't-edit-selected' : ''}"
+                  data-r="0" data-m="${m}" data-s="b">
+              ${state.emojiMap[mu.b] || '\u{1F37D}'} ${esc(mu.b)}
+            </span>
+            ${isHost ? `
+              <button class="t-edit-remove" data-name="${esc(mu.a)}">\u00D7</button>
+              <button class="t-edit-remove" data-name="${esc(mu.b)}">\u00D7</button>
+            ` : ''}
+          </div>`;
+      }
+    }
+  }
+
   app.innerHTML = `
     <div class="t-lobby">
       <div class="t-room-code-display">
@@ -461,23 +614,36 @@ function renderLobby(app) {
 
       <div class="t-card" style="width:100%">
         <h3>Bracket (${state.tournament.items.length} places)</h3>
-        <div class="t-items-preview">
-          ${state.tournament.items
-            .map(item => `<span class="t-item-chip">${state.emojiMap[item] || '\u{1F37D}'} ${esc(item)}</span>`)
-            .join('')}
+        ${sel ? '<p class="t-swap-hint">Tap another item to swap</p>' : ''}
+        <div class="t-bracket-editor">
+          ${matchupsHtml}
         </div>
+        ${isHost ? `
+          <div class="t-edit-actions">
+            <div class="t-edit-add">
+              <input type="text" id="add-item-input" placeholder="Add a place..." maxlength="40">
+              <button id="add-item-btn" class="t-btn-small">+ Add</button>
+            </div>
+            <div class="t-edit-buttons">
+              <button id="reshuffle-btn" class="t-btn-small">Reshuffle</button>
+            </div>
+          </div>
+          ${isHost && sel ? '<p class="t-hint">Tap two items to swap their matchups</p>' : ''}
+        ` : ''}
       </div>
 
       ${
-        state.isHost
-          ? `<button id="start-btn" class="t-btn t-btn-primary t-btn-large">Start Tournament</button>`
+        isHost
+          ? `<button id="start-btn" class="t-btn t-btn-primary t-btn-large" ${state.tournament.items.length < 2 ? 'disabled' : ''}>Start Tournament</button>`
           : '<p class="t-waiting">Waiting for host to start...</p>'
       }
 
       <p class="t-hint">Share the room code with your team!</p>
+      <p id="t-error" class="t-error" hidden></p>
     </div>
   `;
 
+  // --- Event listeners ---
   listen('copy-code', 'click', () => {
     navigator.clipboard?.writeText(state.roomCode);
     const btn = document.getElementById('copy-code');
@@ -486,14 +652,52 @@ function renderLobby(app) {
   });
 
   listen('start-btn', 'click', startTournament);
+
+  // Swap taps (host only)
+  if (isHost) {
+    document.querySelectorAll('.t-edit-item.t-edit-tappable').forEach(el => {
+      el.addEventListener('click', () => {
+        handleSwapTap(
+          parseInt(el.dataset.r),
+          parseInt(el.dataset.m),
+          el.dataset.s
+        );
+      });
+    });
+
+    // Remove buttons
+    document.querySelectorAll('.t-edit-remove').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeTournamentItem(el.dataset.name);
+      });
+    });
+
+    // Add item
+    listen('add-item-btn', 'click', () => {
+      const name = val('add-item-input');
+      if (!name) return;
+      if (state.tournament.items.includes(name)) return showError('Already in the bracket');
+      if (state.tournament.items.length >= 20) return showError('Max 20 items');
+      addTournamentItem(name);
+    });
+    document.getElementById('add-item-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('add-item-btn')?.click();
+    });
+
+    listen('reshuffle-btn', 'click', reshuffleBracket);
+  }
 }
 
 function renderVoting(app) {
   const bracket = state.tournament.bracket;
   const r = state.tournament.current_round;
   const m = state.tournament.current_matchup;
-  const matchup = bracket[r][m];
-  if (!matchup || !matchup.a || !matchup.b) return;
+  const matchup = bracket?.[r]?.[m];
+  if (!matchup || !matchup.a || !matchup.b) {
+    app.innerHTML = '<div class="t-home"><p class="t-error">Waiting for next matchup...</p></div>';
+    return;
+  }
 
   const roundName = getRoundName(r, bracket.length);
   const currentVotes = state.votes.filter(v => v.round === r && v.matchup === m);
@@ -695,12 +899,20 @@ function showError(msg) {
   if (el) {
     el.textContent = msg;
     el.hidden = false;
-    setTimeout(() => (el.hidden = true), 3000);
+    setTimeout(() => (el.hidden = true), 6000);
   }
+  console.error('Tournament error:', msg);
 }
 
 // --- Init ---
 async function init() {
+  // Quick Supabase health check
+  if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
+    document.getElementById('app').innerHTML =
+      '<div class="t-home"><p class="t-error">Supabase not configured. Check environment variables.</p></div>';
+    return;
+  }
+
   const params = new URLSearchParams(window.location.search);
   const roomCode = params.get('room');
 
@@ -710,6 +922,10 @@ async function init() {
       return;
     } catch (e) {
       console.error('Rejoin failed:', e);
+      // Fall through to home view — show the error there
+      render();
+      showError(e.message);
+      return;
     }
   }
 
